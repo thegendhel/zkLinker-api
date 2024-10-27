@@ -105,8 +105,8 @@ async function generateProof(data) {
 
   } catch (err) {
     baseResult.error = err.message;
-    return res.status(400).json(baseResult);
   }
+  return res.status(400).json(baseResult);
 }
 
 app.post("/proof", async function (req, res) {
