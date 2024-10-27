@@ -9,6 +9,12 @@ const cors = require("cors");
 
 dotenv.config();
 
+let baseResult = {
+  success: false,
+  error: "",
+  data: {},
+};
+
 const corsOptions = {
   credentials: true,
   origin: "*",
@@ -27,12 +33,6 @@ app.use(express.json());
 const port = 7788;
 
 const cacheDir = path.join(__dirname, "cache");
-
-let baseResult = {
-  success: false,
-  error: "",
-  data: {},
-};
 
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
@@ -88,36 +88,41 @@ async function generateProof(data) {
     );
 
     if (!proof) {
-      baseResult.error = "Failed to generate proof";
-      return res.status(400).json(baseResult);
+      return {
+        success: false,
+        error: "Failed to generate proof",
+      };
     }
 
     const isValid = await Reclaim.verifySignedProof(proof);
     if (!isValid) {
-      baseResult.error = "Proof is invalid";
-      return res.status(400).json(baseResult);
+      return {
+        success: false,
+        error: "Proof is invalid",
+      };
     }
 
     const tProof = await Reclaim.transformForOnchain(proof);
 
-    baseResult.data = { proof: proof, transformed: tProof };
-    return res.status(200).json(baseResult);
-
+    return {
+      success: true,
+      data: { proof: proof, transformed: tProof },
+    };
   } catch (err) {
-    baseResult.error = err.message;
+    return {
+      success: false,
+      error: err.message,
+    };
   }
-  return res.status(400).json(baseResult);
 }
 
 app.post("/proof", async function (req, res) {
-  console.log(`proof res`, res);
   const cacheKey = generateCacheKey(JSON.stringify(req.body));
   const cache = readCache(cacheKey);
 
   if (cache) {
     baseResult.success = true;
-    baseResult.error = "";
-    baseResult.data = cache.data;
+    baseResult.data = cache;
     return res.status(200).json(baseResult);
   }
 
@@ -136,16 +141,15 @@ app.post("/proof", async function (req, res) {
       transformed: result.data.transformed,
     };
 
-    baseResult.success = true;
-    baseResult.error = "";
-    baseResult.data = response;
-
     writeCache(cacheKey, response);
+    baseResult.success = true;
+    baseResult.data = response;
+    baseResult.message="";
 
     return res.status(200).json(baseResult);
   } catch (e) {
-    console.error(e);
-    baseResult.error = e.message;
+    console.error(e, e.message);
+    baseResult.error = "ServerError";
     return res.status(500).json(baseResult);
   }
 });
