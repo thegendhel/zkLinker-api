@@ -118,7 +118,7 @@ app.post("/proof", async function (req, res) {
     }
 
     let response = {
-      id: cacheKey,
+      id: cacheKey.replace(".json", ""),
       url: req.body.url,
       proof: result.data.proof,
       transformed: result.data.transformed,
@@ -133,8 +133,7 @@ app.post("/proof", async function (req, res) {
 });
 
 app.get("/proof/:id", function (req, res) {
-  const cacheKey = generateCacheKey(JSON.stringify(req.body));
-  const cache = readCache(cacheKey);
+  const cache = readCache(req.params.id + ".json");
 
   if (cache) {
     return res.status(200).json(cache.data);
