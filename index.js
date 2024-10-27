@@ -110,6 +110,7 @@ async function generateProof(data) {
 }
 
 app.post("/proof", async function (req, res) {
+  console.log(`proof res`, res);
   const cacheKey = generateCacheKey(JSON.stringify(req.body));
   const cache = readCache(cacheKey);
 
