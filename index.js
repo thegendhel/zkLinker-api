@@ -114,14 +114,18 @@ app.post("/proof", async function (req, res) {
   const cache = readCache(cacheKey);
 
   if (cache) {
-    return res.status(200).json(cache.data);
+    baseResult.success = true;
+    baseResult.error = "";
+    baseResult.data = cache.data;
+    return res.status(200).json(baseResult);
   }
 
   try {
     const result = await generateProof(req.body);
 
     if (!result.success) {
-      return res.status(400).json({ error: result.error });
+      baseResult.error = result.error;
+      return res.status(400).json(baseResult);
     }
 
     let response = {
@@ -131,11 +135,17 @@ app.post("/proof", async function (req, res) {
       transformed: result.data.transformed,
     };
 
+    baseResult.success = true;
+    baseResult.error = "";
+    baseResult.data = response;
+
     writeCache(cacheKey, response);
 
-    return res.status(200).json(response);
+    return res.status(200).json(baseResult);
   } catch (e) {
-    return res.status(500).json({ error: "ServerError" });
+    console.error(e);
+    baseResult.error = e.message;
+    return res.status(500).json(baseResult);
   }
 });
 
