@@ -28,6 +28,12 @@ const port = 7788;
 
 const cacheDir = path.join(__dirname, "cache");
 
+let baseResult = {
+  success: false,
+  error: "",
+  data: {},
+};
+
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
 }
@@ -82,31 +88,24 @@ async function generateProof(data) {
     );
 
     if (!proof) {
-      return {
-        success: false,
-        error: "Failed to generate proof",
-      };
+      baseResult.error = "Failed to generate proof";
+      return res.status(400).json(baseResult);
     }
 
     const isValid = await Reclaim.verifySignedProof(proof);
     if (!isValid) {
-      return {
-        success: false,
-        error: "Proof is invalid",
-      };
+      baseResult.error = "Proof is invalid";
+      return res.status(400).json(baseResult);
     }
 
     const tProof = await Reclaim.transformForOnchain(proof);
 
-    return {
-      success: true,
-      data: { proof: proof, transformed: tProof },
-    };
+    baseResult.data = { proof: proof, transformed: tProof };
+    return res.status(200).json(baseResult);
+
   } catch (err) {
-    return {
-      success: false,
-      error: err.message,
-    };
+    baseResult.error = err.message;
+    return res.status(400).json(baseResult);
   }
 }
 
