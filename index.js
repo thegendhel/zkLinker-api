@@ -5,8 +5,15 @@ const dotenv = require("dotenv");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors");
 
 dotenv.config();
+
+const corsOptions = {
+  credentials: true,
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+};
 
 const reclaimClient = new ReclaimClient(
   process.env.RECLAIM_APP_ID,
@@ -15,6 +22,7 @@ const reclaimClient = new ReclaimClient(
 );
 
 const app = express();
+app.use(cors(corsOptions));
 app.use(express.json());
 const port = 7788;
 
