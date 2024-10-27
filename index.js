@@ -122,7 +122,7 @@ app.post("/proof", async function (req, res) {
     const result = await generateProof(req.body);
 
     if (!result.success) {
-      return res.status(400).send(result.error);
+      return res.status(400).json({ error: result.error });
     }
 
     let response = {
@@ -136,7 +136,7 @@ app.post("/proof", async function (req, res) {
 
     return res.status(200).json(response);
   } catch (e) {
-    return res.status(500).send(e);
+    return res.status(500).json({ error: "ServerError" });
   }
 });
 
@@ -147,7 +147,7 @@ app.get("/proof/:id", function (req, res) {
     return res.status(200).json(cache.data);
   }
 
-  return res.status(404).send({ error: "NotFound" });
+  return res.status(404).json({ error: "NotFound" });
 });
 
 app.listen(port, () => {
